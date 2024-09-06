@@ -54,6 +54,7 @@ class TenantResource extends Resource
                     Forms\Components\TextInput::make('password')
                         ->label('Password')
                         ->password()
+                        ->required()
                         ->revealable(filament()->arePasswordsRevealable())
                         ->rule(Password::default())
                         ->autocomplete('new-password')
