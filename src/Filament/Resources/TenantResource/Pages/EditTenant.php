@@ -17,7 +17,7 @@ class EditTenant extends EditRecord
             Actions\Action::make('open')
                 ->label('Open Tenant')
                 ->icon('heroicon-s-link')
-                ->url(fn($record) => "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/' . filament('filament-tenancy')->panel)
+                ->url(fn($record) => "https://" . $record->domains()->first()?->domain . '.' . config('filament-tenancy.central_domain') . '/' . filament('filament-tenancy')->panel)
                 ->openUrlInNewTab(),
             Actions\DeleteAction::make()
                 ->icon('heroicon-s-trash')
@@ -34,16 +34,25 @@ class EditTenant extends EditRecord
             "email" => $data['email'],
         ];
 
-        if(isset($data['password'])){
+        if (isset($data['password'])) {
             $updateData["password"] = $data['password'];
         }
 
-        config(['database.connections.dynamic.database' => config('tenancy.database.prefix').$record->id. config('tenancy.database.suffix')]);
+        $dynamicDb = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
+
+
+        DB::purge('dynamic');
+
+        config(['database.connections.dynamic.database' => $dynamicDb]);
+
+        DB::reconnect('dynamic');
+
         $user = DB::connection('dynamic')
             ->table('users')
             ->where('email', $record->email)
             ->first();
-        if($user){
+
+        if ($user) {
             DB::connection('dynamic')
                 ->table('users')
                 ->where('email', $record->email)
@@ -51,8 +60,7 @@ class EditTenant extends EditRecord
                     "name" => $data['name'],
                     "email" => $data['email'],
                 ]);
-        }
-        else {
+        } else {
             DB::connection('dynamic')
                 ->table('users')
                 ->insert($updateData);
