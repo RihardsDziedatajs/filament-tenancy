@@ -47,23 +47,17 @@ class EditTenant extends EditRecord
 
         DB::reconnect('dynamic');
 
-        $user = DB::connection('dynamic')
-            ->table('users')
-            ->where('email', $record->email)
-            ->first();
+        $table = DB::connection('dynamic')->table('users');
 
+        $user = $table->where('email', $record->email)->first();
         if ($user) {
-            DB::connection('dynamic')
-                ->table('users')
-                ->where('email', $record->email)
+            $table->where('email', $record->email)
                 ->update([
                     "name" => $data['name'],
                     "email" => $data['email'],
                 ]);
         } else {
-            DB::connection('dynamic')
-                ->table('users')
-                ->insert($updateData);
+            $table->insert($updateData);
         }
 
         return $data;

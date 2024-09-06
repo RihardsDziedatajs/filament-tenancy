@@ -24,6 +24,7 @@ class CreateTenant extends CreateRecord
     {
         $record = parent::handleRecordCreation(collect($data)->except('domain')->toArray());
         $record->domains()->create(['domain' => collect($data)->get('domain')]);
+
         return $record;
     }
 
@@ -73,28 +74,22 @@ class CreateTenant extends CreateRecord
 
         DB::reconnect('dynamic');
 
-        $user = DB::connection('dynamic')
-            ->table('users')
-            ->where('email', $record->email)
-            ->first();
+        $table = DB::connection('dynamic')->table('users');
 
+        $user = $table->where('email', $record->email)->first();
         if ($user) {
-            DB::connection('dynamic')
-                ->table('users')
-                ->where('email', $record->email)
+            $table->where('email', $record->email)
                 ->update([
                     "name" => $record->name,
                     "email" => $record->email,
                     "password" => $record->password,
                 ]);
         } else {
-            DB::connection('dynamic')
-                ->table('users')
-                ->insert([
-                    "name" => $record->name,
-                    "email" => $record->email,
-                    "password" => $record->password,
-                ]);
+            $table->insert([
+                "name" => $record->name,
+                "email" => $record->email,
+                "password" => $record->password,
+            ]);
         }
 
         $this->redirect($redirectUrl, navigate: FilamentView::hasSpaMode() && is_app_url($redirectUrl));
@@ -108,9 +103,11 @@ class CreateTenant extends CreateRecord
         \Log::info("Saving Tenant");
         $record = new Tenant(collect($data)->except('domain')->toArray());
         $record->saveOrFail();
+
         \Log::info("Saving Domains");
         $record = $record::find($record->id);
         $record->domains()->create(['domain' => collect($data)->get('domain')]);
+
         return $record;
     }
 }
