@@ -65,12 +65,20 @@ class CreateTenant extends CreateRecord
 
         $record = $this->record;
 
-        config(['database.connections.dynamic.database' => config('tenancy.database.prefix').$record->id. config('tenancy.database.suffix')]);
+        $dynamicDb = config('tenancy.database.prefix') . $record->id . config('tenancy.database.suffix');
+
+        DB::purge('dynamic');
+
+        config(['database.connections.dynamic.database' => $dynamicDb]);
+
+        DB::reconnect('dynamic');
+
         $user = DB::connection('dynamic')
             ->table('users')
             ->where('email', $record->email)
             ->first();
-        if($user){
+
+        if ($user) {
             DB::connection('dynamic')
                 ->table('users')
                 ->where('email', $record->email)
@@ -79,8 +87,7 @@ class CreateTenant extends CreateRecord
                     "email" => $record->email,
                     "password" => $record->password,
                 ]);
-        }
-        else {
+        } else {
             DB::connection('dynamic')
                 ->table('users')
                 ->insert([
@@ -92,7 +99,6 @@ class CreateTenant extends CreateRecord
 
         $this->redirect($redirectUrl, navigate: FilamentView::hasSpaMode() && is_app_url($redirectUrl));
     }
-
 
     /**
      * @throws Throwable
