@@ -10,6 +10,8 @@ return [
 
     'domain_model' => Domain::class,
 
+    'tenant_panel' => env('TENANT_PANEL'),
+
     /**
      * The list of domains hosting your central app.
      *
