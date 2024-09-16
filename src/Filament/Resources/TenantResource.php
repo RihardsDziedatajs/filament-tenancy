@@ -83,7 +83,7 @@ class TenantResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('ID')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->description(function ($record) {
-                        return "https://" . $record->domains()->first()?->domain . '.' . config('filament-tenancy.central_domain') . '/app';
+                        return "https://" . $record->domains()->first()?->domain . '.' . config('filament-tenancy.central_domain') . '/' . filament('filament-tenancy')->panel;
                     }),
             ])
             ->filters([
