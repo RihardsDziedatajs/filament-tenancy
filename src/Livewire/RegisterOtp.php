@@ -108,9 +108,9 @@ class RegisterOtp extends SimplePage
 
         session()->regenerate();
 
-        $token = tenancy()->impersonate($record, 1, '/' . config('tenancy.tenant_panel'), 'web');
+        $token = tenancy()->impersonate($record, 1, '/' . filament('filament-tenancy')->panel, 'web');
 
-        return redirect()->to('https://'.$record->domains[0]->domain.'.'. config('app.domain') . '/' . config('tenancy.tenant_panel') . '/login/url?token='.$token->token .'&email='. $record->email);
+        return redirect()->to('https://'.$record->domains[0]->domain.'.'. config('app.domain') . '/' . filament('filament-tenancy')->panel . '/login/url?token='.$token->token .'&email='. $record->email);
     }
 
     protected function getResendAction(): Action
