@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomatoPHP\FilamentTenancy\Filament\Resources;
 
 use TomatoPHP\FilamentTenancy\Filament\Resources\TenantResource\Pages;
@@ -30,24 +32,24 @@ class TenantResource extends Resource
                 Forms\Components\Section::make([
                     Forms\Components\TextInput::make('name')
                         ->required()
-                        ->unique(table:'tenants', ignoreRecord: true)->live(onBlur: true)
-                        ->afterStateUpdated(function(Forms\Set $set, $state) {
+                        ->unique(table: 'tenants', ignoreRecord: true)->live(onBlur: true)
+                        ->afterStateUpdated(function (Forms\Set $set, $state) {
                             $set('id', $slug = \Str::of($state)->slug('_')->toString());
                             $set('domain', \Str::of($state)->slug()->toString());
                         }),
                     Forms\Components\TextInput::make('id')
                         ->label('Unique ID')
                         ->required()
-                        ->disabled(fn($context) => $context !=='create')
+                        ->disabled(fn($context) => $context !== 'create')
                         ->unique(table: 'tenants', ignoreRecord: true),
                     Forms\Components\TextInput::make('domain')
                         ->columnSpanFull()
                         ->label('Sub-Domain')
                         ->required()
-                        ->visible(fn($context) => $context ==='create')
-                        ->unique(table: 'domains',ignoreRecord: true)
+                        ->visible(fn($context) => $context === 'create')
+                        ->unique(table: 'domains', ignoreRecord: true)
                         ->prefix('https://')
-                        ->suffix(".".request()->getHost())
+                        ->suffix("." . request()->getHost())
                     ,
                     Forms\Components\TextInput::make('email')->required()->email(),
                     Forms\Components\TextInput::make('phone')->tel(),
@@ -58,8 +60,8 @@ class TenantResource extends Resource
                         ->revealable(filament()->arePasswordsRevealable())
                         ->rule(Password::default())
                         ->autocomplete('new-password')
-                        ->dehydrated(fn ($state): bool => filled($state))
-                        ->dehydrateStateUsing(fn ($state): string => Hash::make($state))
+                        ->dehydrated(fn($state): bool => filled($state))
+                        ->dehydrateStateUsing(fn($state): string => Hash::make($state))
                         ->live(debounce: 500)
                         ->same('passwordConfirmation'),
                     Forms\Components\TextInput::make('passwordConfirmation')
@@ -80,8 +82,8 @@ class TenantResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('ID')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->description(function ($record){
-                        return "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/app';
+                    ->description(function ($record) {
+                        return "https://" . $record->domains()->first()?->domain . '.' . config('filament-tenancy.central_domain') . '/app';
                     }),
             ])
             ->filters([
@@ -94,7 +96,7 @@ class TenantResource extends Resource
                     ->tooltip('Open Tenant')
                     ->iconButton()
                     ->icon('heroicon-s-link')
-                    ->url(fn($record) => "https://".$record->domains()->first()?->domain .'.'.config('filament-tenancy.central_domain'). '/'. filament('filament-tenancy')->panel)
+                    ->url(fn($record) => "https://" . $record->domains()->first()?->domain . '.' . config('filament-tenancy.central_domain') . '/' . filament('filament-tenancy')->panel)
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('login')
                     ->visible(filament('filament-tenancy')->allowImpersonate)
@@ -104,10 +106,10 @@ class TenantResource extends Resource
                     ->tooltip('Login To Tenat')
                     ->iconButton()
                     ->icon('heroicon-s-arrow-left-on-rectangle')
-                    ->action(function ($record){
-                        $token = tenancy()->impersonate($record, 1, '/app', 'web');
+                    ->action(function ($record) {
+                        $token = tenancy()->impersonate($record, 1, '/' . config('tenancy.tenant_panel'), 'web');
 
-                        return redirect()->to('https://'.$record->domains[0]->domain.'.'. config('filament-tenancy.central_domain') . '/login/url?token='.$token->token .'&email='. $record->email);
+                        return redirect()->to('https://' . $record->domains[0]->domain . '.' . config('app.domain') . '/' . config('tenancy.tenant_panel') . '/login/url?token=' . $token->token . '&email=' . $record->email);
                     }),
                 Tables\Actions\Action::make('password')
                     ->requiresConfirmation()
